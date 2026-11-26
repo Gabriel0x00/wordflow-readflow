@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#113D32">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icon-192.png">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+  <title>Instalar DailyEnglish</title>
+  <style>
+    :root{color-scheme:light dark;--bg:#f2f5ef;--ink:#162f27;--card:#fff;--accent:#1b5847}
+    @media(prefers-color-scheme:dark){:root{--bg:#111e19;--ink:#edf4eb;--card:#1a2b23;--accent:#acdDB9}}
+    body{margin:0;padding:22px;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,sans-serif}
+    main{margin:0 auto;max-width:480px}
+    img{display:block;width:148px;height:148px;border-radius:22px}
+    h1{line-height:1.15;font-size:2.1rem;margin:16px 0 10px}
+    section{background:var(--card);padding:16px;border-radius:16px;margin:12px 0}
+    h2{font-size:1rem;margin:0 0 6px}
+    p{margin:0 0 12px}
+    section p{margin:0}
+    a,button{display:inline-block;padding:11px 15px;background:var(--accent);color:var(--bg);font:inherit;font-weight:700;border:0;border-radius:11px;text-decoration:none;cursor:pointer;margin:4px 6px 4px 0}
+    [hidden]{display:none}
+  </style>
+</head>
+<body>
+  <main>
+    <img src="./logo.png" alt="Logo de DailyEnglish">
+    <h1>Instala DailyEnglish</h1>
+    <p>Abre tu horario desde la pantalla de inicio. Al volver a abrir la app con internet, se cargará la versión publicada en GitHub Pages.</p>
+    <button type="button" id="install" hidden>Instalar DailyEnglish</button>
+    <a href="./">Abrir DailyEnglish</a>
+    <section><h2>Android · Chrome</h2><p>Abre el menú ⋮ y toca <strong>Instalar app</strong> o <strong>Agregar a pantalla de inicio</strong>.</p></section>
+    <section><h2>iPhone · Safari</h2><p>Toca <strong>Compartir</strong> y después <strong>Añadir a pantalla de inicio</strong>.</p></section>
+    <section><h2>Recordatorios</h2><p>Los avisos con la pantalla bloqueada y las grabaciones de Speaking requieren la versión móvil nativa.</p></section>
+  </main>
+  <script>
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(console.warn);
+    let prompt;
+    const button = document.querySelector('#install');
+    addEventListener('beforeinstallprompt', event => { event.preventDefault(); prompt = event; button.hidden = false; });
+    button.addEventListener('click', async () => {
+      if (!prompt) return;
+      await prompt.prompt();
+      prompt = null;
+      button.hidden = true;
+    });
+    addEventListener('appinstalled', () => { button.hidden = true; });
+  </script>
+</body>
+</html>
