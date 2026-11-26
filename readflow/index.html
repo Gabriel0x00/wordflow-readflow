@@ -1,0 +1,1688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReadFlow · Lee, descubre y aprende</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Literata:opsz,wght@7..72,400;7..72,500;7..72,600&family=Merriweather:wght@300;400;700&family=Open+Sans:wght@400;500;600;700&family=Roboto:wght@400;500;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet">
+  <style>
+:root {
+  color-scheme: light;
+  --bg: #f5f2ec;
+  --surface: #fffdf8;
+  --surface-strong: #ffffff;
+  --text: #202124;
+  --muted: #68645c;
+  --line: #ded8cc;
+  --accent: #2e6f73;
+  --accent-strong: #184f54;
+  --accent-soft: #dff0ee;
+  --amber: #b96e2f;
+  --danger: #b44141;
+  --shadow: 0 20px 50px rgba(55, 45, 30, 0.14);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #151719;
+  --surface: #1f2325;
+  --surface-strong: #282d30;
+  --text: #f4efe7;
+  --muted: #b8b0a4;
+  --line: #3b4143;
+  --accent: #74c7bd;
+  --accent-strong: #a5ded7;
+  --accent-soft: #253d3c;
+  --amber: #e0aa64;
+  --danger: #f07d7d;
+  --shadow: 0 20px 60px rgba(0, 0, 0, 0.34);
+}
+
+:root[data-theme="sepia"] {
+  color-scheme: light;
+  --bg: #efe4d0;
+  --surface: #fbf1de;
+  --surface-strong: #fff6e7;
+  --text: #2f261e;
+  --muted: #766550;
+  --line: #d7c5a9;
+  --accent: #7c6a38;
+  --accent-strong: #4d421f;
+  --accent-soft: #eadfc5;
+  --amber: #9f622f;
+  --danger: #a84242;
+  --shadow: 0 20px 50px rgba(91, 67, 32, 0.15);
+}
+
+:root[data-theme="amoled"] {
+  color-scheme: dark;
+  --bg: #000000;
+  --surface: #070707;
+  --surface-strong: #000000;
+  --text: #f5f5f5;
+  --muted: #ababab;
+  --line: #242424;
+  --accent: #72d6c9;
+  --accent-strong: #b5fff5;
+  --accent-soft: #102522;
+  --amber: #e5b66c;
+  --danger: #ff8585;
+  --shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Inter, system-ui, sans-serif;
+  transition: background 220ms ease, color 220ms ease;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+.app-shell {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  min-height: 100vh;
+  transition: grid-template-columns 240ms ease;
+}
+
+body.is-reading .app-shell {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+body.is-reading .main {
+  grid-column: 1 / -1;
+}
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  padding: 24px;
+  border-right: 1px solid var(--line);
+  background: var(--surface);
+  overflow-y: auto;
+  z-index: 5;
+  transition: transform 220ms ease, background 220ms ease, border-color 220ms ease;
+}
+
+body.is-reading .sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: min(320px, 86vw);
+  transform: translateX(-100%);
+}
+
+body.is-reading .sidebar.is-open {
+  transform: translateX(0);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  margin-bottom: 34px;
+}
+
+.brand-mark {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font-family: Literata, serif;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.brand-kicker,
+.eyebrow,
+.section-label,
+.book-type {
+  margin: 0 0 5px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.brand h1,
+.topbar h2,
+.library-header h3,
+.reader-book-meta h3 {
+  margin: 0;
+}
+
+.brand h1 {
+  font-size: 20px;
+}
+
+.nav-list {
+  display: grid;
+  gap: 8px;
+}
+
+.nav-item,
+.theme-option,
+.toc-item {
+  border: 0;
+  color: var(--text);
+  background: transparent;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: 8px;
+  color: var(--muted);
+  text-align: left;
+}
+
+.nav-item.is-active,
+.nav-item:hover {
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+
+.sidebar-section {
+  margin-top: 30px;
+}
+
+.sidebar-section.compact {
+  margin-top: 24px;
+}
+
+.file-drop {
+  display: grid;
+  gap: 6px;
+  padding: 18px;
+  border: 1px dashed var(--accent);
+  border-radius: 8px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+
+.file-drop input {
+  display: none;
+}
+
+.file-drop-icon {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--surface);
+  font-weight: 800;
+}
+
+.file-drop small {
+  color: var(--muted);
+}
+
+.theme-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.theme-option {
+  min-height: 36px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.theme-option.is-active {
+  background: var(--accent);
+  color: #fff;
+}
+
+.main {
+  min-width: 0;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 82px;
+  padding: 18px 34px;
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--bg) 86%, transparent);
+  backdrop-filter: blur(18px);
+  z-index: 4;
+  transition: transform 220ms ease, background 220ms ease, border-color 220ms ease;
+}
+
+.topbar.is-hidden {
+  transform: translateY(-100%);
+}
+
+.menu-toggle {
+  display: none;
+}
+
+body.is-reading .menu-toggle {
+  display: inline-grid;
+}
+
+.topbar-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.icon-button,
+.ghost-button,
+.primary-button,
+.secondary-button,
+.icon-text-button,
+.danger-button,
+.tiny-button {
+  min-height: 42px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  padding: 0 16px;
+  font-weight: 700;
+}
+
+.icon-button,
+.ghost-button,
+.primary-button,
+.secondary-button,
+.icon-text-button,
+.danger-button,
+.tiny-button,
+.nav-item,
+.toc-item {
+  transition: transform 160ms ease, background 160ms ease, border-color 160ms ease, color 160ms ease, opacity 160ms ease;
+}
+
+.icon-button:hover,
+.ghost-button:hover,
+.primary-button:hover,
+.secondary-button:hover,
+.icon-text-button:hover,
+.tiny-button:hover {
+  transform: translateY(-1px);
+}
+
+.icon-button {
+  width: 42px;
+  padding: 0;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.ghost-button,
+.icon-text-button,
+.secondary-button {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.primary-button {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+.primary-button.small {
+  min-height: 36px;
+  padding-inline: 13px;
+}
+
+.danger-button {
+  min-height: 36px;
+  border-color: transparent;
+  background: transparent;
+  color: var(--danger);
+}
+
+.tiny-button {
+  min-height: 30px;
+  padding: 0 10px;
+  border-color: var(--line);
+  background: var(--surface-strong);
+  color: var(--text);
+  font-size: 12px;
+}
+
+.tiny-button.danger {
+  color: var(--danger);
+}
+
+.view {
+  display: none;
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.view.is-visible {
+  display: block;
+  animation: viewIn 220ms ease forwards;
+}
+
+@keyframes viewIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.library-view {
+  padding: 34px;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+  gap: 28px;
+  align-items: stretch;
+  margin-bottom: 34px;
+}
+
+.hero-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 360px;
+  padding: 42px;
+  border-radius: 8px;
+  background:
+    linear-gradient(125deg, color-mix(in srgb, var(--accent-soft) 78%, var(--surface)), var(--surface));
+  box-shadow: var(--shadow);
+}
+
+.hero h2 {
+  max-width: 760px;
+  margin: 0;
+  font-family: Literata, serif;
+  font-size: clamp(34px, 5vw, 64px);
+  line-height: 1.02;
+}
+
+.hero p {
+  max-width: 650px;
+  color: var(--muted);
+  font-size: 17px;
+  line-height: 1.7;
+}
+
+.hero-actions,
+.chapter-actions,
+.book-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.hero-panel {
+  display: flex;
+  align-items: center;
+  padding: 28px;
+  border-radius: 8px;
+  background: #273b3c;
+  box-shadow: var(--shadow);
+}
+
+.preview-window {
+  width: 100%;
+  min-height: 300px;
+  padding: 28px;
+  border-radius: 8px;
+  background: #fffaf0;
+  color: #26231f;
+}
+
+.preview-bar {
+  width: 44%;
+  height: 7px;
+  margin-bottom: 32px;
+  border-radius: 999px;
+  background: #2e6f73;
+}
+
+.preview-chapter {
+  color: #8b6f43;
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.preview-window h3 {
+  margin: 0 0 14px;
+  font-family: Literata, serif;
+  font-size: 30px;
+}
+
+.preview-window p {
+  color: #5f5548;
+}
+
+.preview-lines {
+  display: grid;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.preview-lines span {
+  height: 10px;
+  border-radius: 999px;
+  background: #e6dac7;
+}
+
+.preview-lines span:nth-child(2) {
+  width: 82%;
+}
+
+.preview-lines span:nth-child(3) {
+  width: 58%;
+}
+
+.library-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 26px 0 18px;
+}
+
+.library-count {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.book-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 18px;
+}
+
+.book-card {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.book-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow);
+}
+
+.book-cover {
+  display: grid;
+  place-items: end start;
+  min-height: 128px;
+  padding: 12px;
+  border-radius: 6px;
+  background: linear-gradient(160deg, var(--accent), #173f42);
+  color: #fff;
+  font-weight: 800;
+}
+
+.book-cover.txt {
+  background: linear-gradient(160deg, var(--amber), #6a3c1e);
+}
+
+.book-card h4 {
+  margin: 0 0 8px;
+  font-size: 17px;
+}
+
+.book-card p {
+  margin: 0 0 12px;
+  color: var(--muted);
+}
+
+.mini-progress,
+.progress-track {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--line) 70%, transparent);
+}
+
+.mini-progress span,
+.progress-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+}
+
+.empty-state {
+  padding: 42px;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  text-align: center;
+}
+
+.empty-state[hidden] {
+  display: none;
+}
+
+.reader-layout {
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  min-height: calc(100vh - 82px);
+  transition: grid-template-columns 240ms ease;
+}
+
+.reader-layout.is-panel-hidden {
+  grid-template-columns: 0 minmax(0, 1fr);
+}
+
+.reader-layout.is-panel-hidden .reader-panel {
+  opacity: 0;
+  pointer-events: none;
+  padding-inline: 0;
+  overflow: hidden;
+}
+
+.reader-panel {
+  padding: 24px;
+  border-right: 1px solid var(--line);
+  background: var(--surface);
+  transition: opacity 180ms ease, padding 220ms ease, background 220ms ease, border-color 220ms ease;
+}
+
+.reader-book-meta {
+  margin-bottom: 24px;
+}
+
+.reader-book-meta p:last-child,
+.progress-wrap p {
+  color: var(--muted);
+}
+
+.progress-label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+.reader-controls {
+  display: grid;
+  gap: 15px;
+  margin: 26px 0;
+}
+
+.reader-controls label {
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.reader-controls input,
+.reader-controls select,
+.search-row input,
+.highlight-item textarea,
+.selection-popover textarea {
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-strong);
+  color: var(--text);
+  padding: 0 12px;
+}
+
+.session-panel,
+.bookmark-block,
+.notes-block,
+.toc-block {
+  margin-top: 24px;
+}
+
+.session-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.session-grid div {
+  min-height: 58px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-strong);
+}
+
+.session-grid span {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.session-grid strong {
+  display: block;
+  margin-top: 5px;
+  font-size: 15px;
+}
+
+.panel-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.toc-list {
+  display: grid;
+  gap: 6px;
+  max-height: 330px;
+  overflow: auto;
+}
+
+.bookmark-list,
+.highlight-list {
+  display: grid;
+  gap: 8px;
+  max-height: 260px;
+  overflow: auto;
+}
+
+.bookmark-item,
+.highlight-item {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-strong);
+}
+
+.bookmark-jump,
+.highlight-jump {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  padding: 0;
+  text-align: left;
+  font-weight: 700;
+}
+
+.highlight-item textarea {
+  min-height: 74px;
+  padding: 9px 10px;
+  resize: vertical;
+  font-size: 13px;
+}
+
+.row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.empty-mini {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.highlight-swatch {
+  flex: 0 0 auto;
+  width: 12px;
+  height: 12px;
+  margin-top: 3px;
+  border-radius: 50%;
+  background: #ffe08a;
+}
+
+.highlight-swatch.green,
+.color-dot.green {
+  background: #a8e8b1;
+}
+
+.highlight-swatch.blue,
+.color-dot.blue {
+  background: #a8d8ff;
+}
+
+.highlight-swatch.rose,
+.color-dot.rose {
+  background: #ffb7c8;
+}
+
+.toc-item {
+  min-height: 38px;
+  padding: 0 10px;
+  border-radius: 7px;
+  color: var(--muted);
+  text-align: left;
+}
+
+.toc-item.is-active,
+.toc-item:hover {
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+
+.reader-stage {
+  min-width: 0;
+  padding: 24px 28px 48px;
+  transition: padding 220ms ease;
+}
+
+.reader-toolbar,
+.search-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.search-row input {
+  max-width: 520px;
+}
+
+.search-row span {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.reader-page {
+  --reader-font-size: 19px;
+  --reader-font-family: "Literata", serif;
+  --reader-line-height: 1.75;
+  --reader-font-weight: 400;
+  --reader-paragraph-spacing: 1.2em;
+  --reader-width: 760px;
+  --reader-margin: 48px;
+  width: min(100%, var(--reader-width));
+  height: calc(100vh - 212px);
+  margin: 0 auto;
+  padding: var(--reader-margin);
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-strong);
+  box-shadow: var(--shadow);
+  scroll-behavior: smooth;
+  transition: opacity 160ms ease, transform 160ms ease, background 220ms ease, color 220ms ease, padding 180ms ease, width 180ms ease;
+}
+
+.reader-page.is-turning {
+  opacity: 0.52;
+  transform: translateY(6px);
+}
+
+.reader-page[data-reader-theme="light"] {
+  background: #fffdf8;
+  color: #202124;
+}
+
+.reader-page[data-reader-theme="sepia"] {
+  background: #fbf0da;
+  color: #30261d;
+  border-color: #d7c1a0;
+}
+
+.reader-page[data-reader-theme="dark"] {
+  background: #202426;
+  color: #f2eee7;
+  border-color: #3a4144;
+}
+
+.reader-page[data-reader-theme="amoled"] {
+  background: #000000;
+  color: #f8f8f8;
+  border-color: #1b1b1b;
+  box-shadow: none;
+}
+
+.chapter-label {
+  margin: 0 0 8px;
+  color: var(--amber);
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.reader-page h2 {
+  margin: 0 0 28px;
+  font-family: Literata, serif;
+  font-size: clamp(28px, 4vw, 44px);
+  line-height: 1.1;
+}
+
+.chapter-content {
+  font-family: var(--reader-font-family);
+  font-size: var(--reader-font-size);
+  font-weight: var(--reader-font-weight);
+  line-height: var(--reader-line-height);
+}
+
+.chapter-content p {
+  margin: 0 0 var(--reader-paragraph-spacing);
+}
+
+mark {
+  border-radius: 3px;
+  background: #ffe08a;
+  color: #201b10;
+}
+
+.saved-highlight {
+  border-radius: 3px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  padding: 0.03em 0.1em;
+  cursor: pointer;
+}
+
+.saved-highlight.yellow {
+  background: rgba(255, 224, 138, 0.72);
+  color: inherit;
+}
+
+.saved-highlight.green {
+  background: rgba(168, 232, 177, 0.68);
+  color: inherit;
+}
+
+.saved-highlight.blue {
+  background: rgba(168, 216, 255, 0.7);
+  color: inherit;
+}
+
+.saved-highlight.rose {
+  background: rgba(255, 183, 200, 0.7);
+  color: inherit;
+}
+
+.selection-popover {
+  position: fixed;
+  z-index: 20;
+  display: grid;
+  gap: 10px;
+  width: min(300px, calc(100vw - 24px));
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.selection-popover[hidden] {
+  display: none;
+}
+
+.color-row {
+  display: flex;
+  gap: 8px;
+}
+
+.color-dot {
+  width: 28px;
+  height: 28px;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  background: #ffe08a;
+}
+
+.color-dot.is-active {
+  border-color: var(--text);
+}
+
+.selection-popover textarea {
+  min-height: 76px;
+  padding: 9px 10px;
+  resize: vertical;
+}
+
+.language-result-panel {
+  --result-panel-width: 430px;
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  pointer-events: none;
+}
+
+.language-result-panel.is-open {
+  pointer-events: auto;
+}
+
+.result-panel-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 12, 12, 0.2);
+  opacity: 0;
+  transition: opacity 220ms ease;
+}
+
+.language-result-panel.is-open .result-panel-overlay {
+  opacity: 1;
+}
+
+.result-panel-shell {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  bottom: 14px;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  width: min(var(--result-panel-width), calc(100vw - 28px));
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--line) 75%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--surface) 86%, transparent);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(22px) saturate(1.15);
+  transform: translateX(calc(100% + 24px));
+  transition: transform 260ms ease, background 220ms ease, border-color 220ms ease;
+}
+
+.language-result-panel.is-open .result-panel-shell {
+  transform: translateX(0);
+}
+
+.result-resize-handle {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 8px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  cursor: ew-resize;
+}
+
+.result-resize-handle:hover {
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+}
+
+.result-panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px 22px 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.result-panel-header h2 {
+  margin: 0;
+  font-family: Literata, Georgia, serif;
+  font-size: 25px;
+  line-height: 1.12;
+}
+
+.result-state-pill {
+  justify-self: start;
+  margin: 14px 22px 0;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.result-panel-content {
+  min-height: 0;
+  padding: 18px 22px 24px;
+  overflow: auto;
+}
+
+.panel-state {
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-strong);
+}
+
+.panel-state h3,
+.panel-state p {
+  margin: 0;
+}
+
+.panel-state p + p,
+.panel-state h3 + p {
+  margin-top: 8px;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.loading-state {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.loading-state span {
+  width: 18px;
+  height: 18px;
+  border: 3px solid color-mix(in srgb, var(--accent) 25%, transparent);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: panelSpin 720ms linear infinite;
+}
+
+@keyframes panelSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.result-selected-text,
+.provider-state-card,
+.result-fields,
+.result-actions,
+.more-info {
+  margin-bottom: 16px;
+}
+
+.result-selected-text,
+.provider-state-card,
+.result-field,
+.more-info details {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-strong);
+}
+
+.result-selected-text {
+  padding: 16px;
+}
+
+.result-label {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.result-selected-text blockquote {
+  margin: 0;
+  font-family: Literata, Georgia, serif;
+  font-size: 18px;
+  line-height: 1.55;
+}
+
+.result-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.result-meta span {
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.provider-state-card {
+  padding: 16px;
+}
+
+.provider-state-card h4 {
+  margin: 0 0 6px;
+}
+
+.provider-state-card p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.provider-state-card ul {
+  display: grid;
+  gap: 8px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.provider-state-card li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.provider-state-card strong {
+  color: var(--amber);
+}
+
+.provider-errors {
+  display: grid;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.provider-errors p {
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+  color: var(--danger);
+  font-size: 13px;
+}
+
+.result-fields {
+  display: grid;
+  gap: 10px;
+}
+
+.result-field {
+  padding: 14px;
+}
+
+.result-field span {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.result-field p {
+  margin: 0;
+  line-height: 1.55;
+}
+
+.result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.result-action {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-strong);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 800;
+  transition: transform 160ms ease, background 160ms ease;
+}
+
+.result-action:hover {
+  transform: translateY(-1px);
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+
+.result-action.accent {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+.more-info {
+  display: grid;
+  gap: 8px;
+}
+
+.more-info details {
+  padding: 0;
+  overflow: hidden;
+}
+
+.more-info summary {
+  cursor: pointer;
+  padding: 13px 14px;
+  font-weight: 800;
+}
+
+.more-info details p {
+  margin: 0;
+  padding: 0 14px 14px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.toast {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  transform: translateY(18px);
+  opacity: 0;
+  pointer-events: none;
+  max-width: min(420px, calc(100vw - 32px));
+  padding: 13px 16px;
+  border-radius: 8px;
+  background: var(--text);
+  color: var(--bg);
+  box-shadow: var(--shadow);
+  transition: 180ms ease;
+  z-index: 10;
+}
+
+.toast.is-visible {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+@media (max-width: 1050px) {
+  .app-shell,
+  .reader-layout,
+  .hero {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: min(320px, 86vw);
+    transform: translateX(-100%);
+    transition: transform 180ms ease;
+  }
+
+  .sidebar.is-open {
+    transform: translateX(0);
+  }
+
+  .menu-toggle {
+    display: inline-grid;
+  }
+
+  .reader-panel {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .reader-controls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .toc-list {
+    max-height: 180px;
+  }
+}
+
+@media (max-width: 700px) {
+  .topbar,
+  .library-view,
+  .reader-stage {
+    padding-inline: 16px;
+  }
+
+  .topbar h2 {
+    font-size: 18px;
+  }
+
+  .topbar-actions {
+    display: none;
+  }
+
+  .hero-content,
+  .hero-panel,
+  .empty-state {
+    padding: 22px;
+  }
+
+  .hero-content {
+    min-height: auto;
+  }
+
+  .book-card {
+    grid-template-columns: 76px minmax(0, 1fr);
+  }
+
+  .reader-controls,
+  .reader-toolbar,
+  .search-row {
+    grid-template-columns: 1fr;
+    display: grid;
+    align-items: stretch;
+  }
+
+  .chapter-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .reader-page {
+    height: calc(100vh - 250px);
+    padding: 30px 22px;
+  }
+
+  .result-panel-shell {
+    top: auto;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: min(86vh, 760px);
+    border-radius: 8px 8px 0 0;
+    transform: translateY(100%);
+  }
+
+  .language-result-panel.is-open .result-panel-shell {
+    transform: translateY(0);
+  }
+
+  .result-resize-handle {
+    display: none;
+  }
+}
+
+</style>
+<link rel="stylesheet" href="readflow.css"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" type="image/png" sizes="48x48" href="readflow-icon-v2-48.png"><link rel="shortcut icon" href="favicon.ico"><link rel="apple-touch-icon" href="readflow-icon-v2-180.png"><meta name="theme-color" content="#083f43"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="ReadFlow"></head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <img class="rf-logo" src="logo.png" alt="ReadFlow" width="48" height="48">
+        <div>
+          <p class="brand-kicker">English Studio</p>
+          <h1>ReadFlow</h1>
+        </div>
+      </div>
+
+      <nav class="nav-list" aria-label="Primary">
+        <button class="nav-item is-active" data-view-target="libraryView">
+          <span aria-hidden="true">H</span>
+          <span>Library</span>
+        </button>
+        <button class="nav-item" data-view-target="readerView" id="readerNavButton" disabled>
+          <span aria-hidden="true">R</span>
+          <span>Reader</span>
+        </button>
+      <button class="nav-item" id="rfNotebook">✦ Palabras y tarjetas</button><button class="nav-item" id="rfBackups">↗ Respaldos e instalación</button><button class="nav-item" id="rfUpdates">↻ Actualizaciones</button></nav>
+
+      <section class="sidebar-section">
+        <p class="section-label">Import</p>
+        <label class="file-drop" for="bookImport">
+          <input id="bookImport" type="file" accept=".txt,.epub,text/plain,application/epub+zip" multiple>
+          <span class="file-drop-icon" aria-hidden="true">+</span>
+          <strong>Add EPUB or TXT</strong>
+          <small>Guárdalos y trasládalos con un respaldo.</small>
+        </label>
+      </section>
+
+      <section class="sidebar-section compact">
+        <p class="section-label">App theme</p>
+        <div class="theme-switch" role="group" aria-label="Theme">
+          <button class="theme-option is-active" data-theme-choice="light">Light</button>
+          <button class="theme-option" data-theme-choice="sepia">Sepia</button>
+          <button class="theme-option" data-theme-choice="dark">Dark</button>
+          <button class="theme-option" data-theme-choice="amoled">AMOLED</button>
+        </div>
+      </section>
+    </aside>
+
+    <main class="main">
+      <header class="topbar" id="topbar">
+        <button class="icon-button menu-toggle" id="menuToggle" aria-label="Open navigation">Menu</button>
+        <div>
+          <p class="eyebrow">ReadFlow 2.1.0</p>
+          <h2 id="pageTitle">Tu espacio de lectura</h2>
+        </div>
+        <div class="topbar-actions">
+          <button class="ghost-button" id="importButton">Import Book</button>
+        </div>
+      </header>
+
+      <section class="view library-view is-visible" id="libraryView">
+        <div class="hero">
+          <div class="hero-content">
+            <p class="eyebrow">TU INGLÉS, PÁGINA A PÁGINA</p>
+            <h2>Lee a tu ritmo. Aprende en cada página.</h2>
+            <p>Importa un libro, descubre palabras y guarda tu progreso. Lleva tu biblioteca a otro navegador con un respaldo.</p>
+            <div class="hero-actions">
+              <button class="primary-button" id="heroImportButton">Importar EPUB o TXT</button>
+              <button class="secondary-button" id="sampleBookButton">Abrir ejemplo</button>
+            </div>
+          </div>
+          <div class="hero-panel" aria-label="Reader preview">
+            <div class="preview-window">
+              <div class="preview-bar"></div>
+              <p class="preview-chapter">Chapter 1</p>
+              <h3>The Art of Attentive Reading</h3>
+              <p>Every paragraph becomes easier to return to when the page is quiet, readable, and shaped around your pace.</p>
+              <div class="preview-lines" aria-hidden="true">
+                <span></span><span></span><span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="library-header">
+          <div>
+            <p class="eyebrow">Your books</p>
+            <h3>Tu biblioteca</h3>
+          </div>
+          <div class="library-count" id="libraryCount">0 books</div>
+        </div>
+
+        <div class="book-grid" id="bookGrid" aria-live="polite"></div>
+        <div class="empty-state" id="emptyState">
+          <h3>Tu próxima lectura empieza aquí</h3>
+          <p>Agrega un EPUB o TXT. Después usa Respaldos e instalación para guardar una copia de tus libros y avances.</p>
+        </div>
+      </section>
+
+      <section class="view reader-view" id="readerView" aria-live="polite">
+        <div class="reader-layout" id="readerLayout">
+          <aside class="reader-panel" id="readerPanel">
+            <div class="reader-book-meta">
+              <p class="eyebrow">Now reading</p>
+              <h3 id="readerBookTitle">No book open</h3>
+              <p id="readerBookAuthor"></p>
+            </div>
+
+            <div class="progress-wrap">
+              <div class="progress-label">
+                <span>Progress</span>
+                <strong id="progressText">0%</strong>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill" id="progressFill"></div>
+              </div>
+              <p id="readingTimeText">Estimated time: 0 min</p>
+            </div>
+
+            <div class="reader-controls">
+              <label>
+                <span>Reading theme</span>
+                <select id="readerThemeControl">
+                  <option value="light">Light</option>
+                  <option value="sepia">Sepia</option>
+                  <option value="dark">Dark</option>
+                  <option value="amoled">AMOLED</option>
+                </select>
+              </label>
+              <label>
+                <span>Font size</span>
+                <input id="fontSizeControl" type="range" min="15" max="32" value="19">
+              </label>
+              <label>
+                <span>Font family</span>
+                <select id="fontFamilyControl">
+                  <option value="Georgia">Georgia</option>
+                  <option value="Merriweather">Merriweather</option>
+                  <option value="Open Sans">Open Sans</option>
+                  <option value="Roboto">Roboto</option>
+                  <option value="Inter">Inter</option>
+                  <option value="Literata">Literata</option>
+                  <option value="Source Serif 4">Source Serif 4</option>
+                </select>
+              </label>
+              <label>
+                <span>Font weight</span>
+                <input id="fontWeightControl" type="range" min="300" max="800" step="100" value="400">
+              </label>
+              <label>
+                <span>Line spacing</span>
+                <input id="lineSpacingControl" type="range" min="1.35" max="2.35" step="0.05" value="1.75">
+              </label>
+              <label>
+                <span>Paragraph spacing</span>
+                <input id="paragraphSpacingControl" type="range" min="0.7" max="2.4" step="0.1" value="1.2">
+              </label>
+              <label>
+                <span>Text width</span>
+                <input id="pageWidthControl" type="range" min="560" max="1060" step="20" value="760">
+              </label>
+              <label>
+                <span>Margins</span>
+                <input id="marginControl" type="range" min="24" max="92" step="4" value="48">
+              </label>
+            </div>
+
+            <div class="session-panel">
+              <p class="section-label">Reading session</p>
+              <div class="session-grid">
+                <div><span>Chapter</span><strong id="sessionChapter">-</strong></div>
+                <div><span>Pages</span><strong id="sessionPages">0</strong></div>
+                <div><span>Time</span><strong id="sessionTime">0m</strong></div>
+                <div><span>Words</span><strong id="sessionWords">0</strong></div>
+                <div><span>Finish</span><strong id="sessionCompletion">-</strong></div>
+                <div><span>Speed</span><strong id="sessionWpm">0 WPM</strong></div>
+              </div>
+            </div>
+
+            <div class="toc-block">
+              <div class="panel-title-row">
+                <p class="section-label">Contents</p>
+                <span id="chapterCount"></span>
+              </div>
+              <div class="toc-list" id="tocList"></div>
+            </div>
+
+            <div class="bookmark-block">
+              <div class="panel-title-row">
+                <p class="section-label">Bookmarks</p>
+                <button class="tiny-button" id="addBookmarkButton">Add</button>
+              </div>
+              <div class="bookmark-list" id="bookmarkList"></div>
+            </div>
+
+            <div class="notes-block">
+              <div class="panel-title-row">
+                <p class="section-label">Highlights</p>
+                <span id="highlightCount">0</span>
+              </div>
+              <div class="highlight-list" id="highlightList"></div>
+            </div>
+          </aside>
+
+          <article class="reader-stage">
+            <div class="reader-toolbar" id="readerToolbar">
+              <button class="ghost-button" id="backToLibraryButton">Library</button>
+              <div class="chapter-actions">
+                <button class="icon-text-button" id="hideReaderPanelButton">Focus</button>
+                <button class="icon-text-button" id="fullscreenButton">Fullscreen</button>
+                <button class="icon-text-button" id="prevChapterButton">Previous</button>
+                <button class="icon-text-button" id="nextChapterButton">Next</button>
+              </div>
+            </div>
+
+            <div class="search-row">
+              <input id="bookSearchInput" type="search" placeholder="Search inside this book" autocomplete="off">
+              <span id="searchResultText">0 results</span>
+            </div>
+
+            <div class="reader-page" id="readerPage">
+              <p class="chapter-label" id="chapterLabel"></p>
+              <h2 id="chapterTitle"></h2>
+              <div class="chapter-content" id="chapterContent"></div>
+            </div>
+          </article>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="selection-popover" id="selectionPopover" hidden>
+    <div class="color-row" aria-label="Highlight color">
+      <button class="color-dot yellow" data-highlight-color="yellow" aria-label="Yellow highlight"></button>
+      <button class="color-dot green" data-highlight-color="green" aria-label="Green highlight"></button>
+      <button class="color-dot blue" data-highlight-color="blue" aria-label="Blue highlight"></button>
+      <button class="color-dot rose" data-highlight-color="rose" aria-label="Rose highlight"></button>
+    </div>
+    <textarea id="highlightNoteInput" placeholder="Optional note"></textarea>
+    <button class="primary-button small" id="saveHighlightButton">Save highlight</button>
+  </div>
+
+  <aside class="language-result-panel" id="languageResultPanel" aria-hidden="true" aria-label="Language Intelligence Result">
+    <div class="result-panel-overlay" data-result-overlay></div>
+    <section class="result-panel-shell">
+      <button class="result-resize-handle" data-result-resize aria-label="Resize language panel"></button>
+      <header class="result-panel-header">
+        <div>
+          <p class="eyebrow" data-result-kicker>Language Intelligence Engine</p>
+          <h2 data-result-title>Select text to analyze</h2>
+        </div>
+        <button class="icon-button" data-result-close aria-label="Close language panel">X</button>
+      </header>
+      <div class="result-state-pill" data-result-state>Empty State</div>
+      <div class="result-panel-content" data-result-content>
+        <div class="panel-state empty-state-panel">
+          <h3>No selection yet</h3>
+          <p>Select a word, sentence, or paragraph while reading to prepare a language result.</p>
+        </div>
+      </div>
+    </section>
+  </aside>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="reader.js"></script>
+<div id="rfNotice" role="status" hidden></div><button id="rfAnalyzeSelection" hidden>Consultar selección</button><button id="rfUpdate" hidden>Nueva versión · Actualizar</button>
+<dialog id="rfDialog"><header><h2 id="rfDialogTitle">ReadFlow</h2><button id="rfClose" aria-label="Cerrar">✕</button></header><div id="rfDialogBody"></div></dialog>
+<input id="rfBackupInput" type="file" accept="application/json,.json" hidden>
+<script src="readflow.js"></script></body>
+</html>
