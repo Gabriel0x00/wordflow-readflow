@@ -1,0 +1,38 @@
+{
+  "id": "./",
+  "name": "WordFlow",
+  "short_name": "WordFlow",
+  "description": "Tu inglés, palabra a palabra.",
+  "lang": "es",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#101a38",
+  "theme_color": "#101a38",
+  "icons": [
+    {
+      "src": "wordflow-icon-v2-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "wordflow-icon-v2-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "wordflow-maskable-v2-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "wordflow-maskable-v2-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

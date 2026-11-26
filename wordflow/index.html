@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WordFlow · Tu inglés, palabra a palabra</title>
+<meta name="application-name" content="WordFlow"><meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#101a38"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="WordFlow">
+<link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="wordflow-icon-v2-180.png"><link rel="icon" href="wordflow-icon-v2-48.png"><link rel="stylesheet" href="wordflow.css">
+<style>
+  :root{
+    --ink:#1E2A38;
+    --paper:#F6F1E4;
+    --paper-line:#E4DCC6;
+    --amber:#D4A017;
+    --sage:#5F8B7A;
+    --sage-dark:#436456;
+    --rust:#B5473F;
+    --muted:#8B93A0;
+    --card-bg:#243244;
+    --font-display: Georgia, 'Iowan Old Style', 'Palatino Linotype', serif;
+    --font-mono: 'Courier New', Courier, monospace;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html, body{ height:100%; }
+  body{
+    position:relative;
+    margin:0;
+    background: var(--ink);
+    font-family: var(--font-body);
+    color: var(--paper);
+    min-height:100vh;
+    padding: 24px 14px 60px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    overflow-x:hidden;
+  }
+  .bg-layer{
+    position:fixed; inset:0; z-index:-2;
+    background-size:cover; background-position:center; background-repeat:no-repeat;
+    opacity:0; transition: opacity 1.8s ease-in-out;
+  }
+  .bg-layer.active{ opacity:1; }
+  .bg-tint{
+    position:fixed; inset:0; z-index:-1;
+    background:
+      linear-gradient(180deg, rgba(30,42,56,0.55) 0%, rgba(30,42,56,0.82) 55%, rgba(30,42,56,0.92) 100%);
+    pointer-events:none;
+  }
+  .header{ width:100%; max-width:560px; text-align:center; margin-bottom:18px; }
+  .eyebrow{
+    font-family: var(--font-mono); letter-spacing: 3px; text-transform:uppercase;
+    font-size:11px; color: var(--amber); margin-bottom:6px;
+  }
+  h1{ font-family: var(--font-display); font-size: 26px; font-weight:600; margin: 0 0 4px; }
+  .subtitle{ font-size:13px; color: var(--muted); }
+
+  /* ---------- PACK GRID SCREEN ---------- */
+  #packScreen{ width:100%; max-width:560px; }
+  .overall-bar{
+    width:100%; height:8px; background:rgba(255,255,255,0.08); border-radius:4px;
+    overflow:hidden; display:flex; margin-bottom:6px;
+  }
+  .overall-fill-known{ background: var(--sage); height:100%; transition:width .3s; }
+  .overall-fill-review{ background: var(--rust); height:100%; transition:width .3s; }
+  .overall-label{ font-family: var(--font-mono); font-size:11px; color:var(--muted); text-align:center; margin-bottom:20px; }
+
+  .search-row{ margin-bottom:16px; }
+  .search-row input{
+    width:100%; padding:12px 14px; border-radius:10px; border:1px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.04); color: var(--paper); font-size:14px; font-family:var(--font-body);
+  }
+  .search-row input::placeholder{ color: var(--muted); }
+
+  .pack-grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+    gap:10px;
+  }
+  .pack-tile{
+    background: var(--card-bg);
+    border:1px solid rgba(255,255,255,0.08);
+    border-radius:12px;
+    padding:12px 8px;
+    text-align:center;
+    cursor:pointer;
+    transition: transform .12s ease, border-color .12s ease;
+    position:relative;
+    overflow:hidden;
+  }
+  .pack-tile:hover{ transform: translateY(-2px); border-color: rgba(255,255,255,0.25); }
+  .pack-tile .num{
+    font-family: var(--font-display); font-size:20px; font-weight:700; margin-bottom:2px;
+  }
+  .pack-tile .range{
+    font-family: var(--font-mono); font-size:9px; color:var(--muted); margin-bottom:8px;
+  }
+  .pack-tile .bar{
+    height:4px; background:rgba(255,255,255,0.1); border-radius:2px; overflow:hidden; display:flex;
+  }
+  .pack-tile .bar-known{ background: var(--sage); height:100%; }
+  .pack-tile .bar-review{ background: var(--rust); height:100%; }
+  .pack-tile.complete{ border-color: rgba(95,139,122,0.6); }
+  .pack-tile.complete::after{
+    content:'✓'; position:absolute; top:6px; right:8px; color: var(--sage); font-size:12px; font-weight:bold;
+  }
+
+  /* ---------- STUDY SCREEN ---------- */
+  #studyScreen{ width:100%; max-width:520px; display:none; }
+  .back-btn{
+    display:flex; align-items:center; gap:6px; background:none; border:none; color:var(--muted);
+    font-family: var(--font-body); font-size:13px; cursor:pointer; margin-bottom:14px; padding:6px 0;
+  }
+  .back-btn:hover{ color: var(--paper); }
+
+  .rail{ width:100%; display:flex; align-items:center; gap:10px; margin-bottom:18px; }
+  .rail-track{ flex:1; height:6px; background: rgba(255,255,255,0.08); border-radius:3px; overflow:hidden; display:flex; }
+  .rail-fill-known{ background: var(--sage); height:100%; transition: width .35s ease; }
+  .rail-fill-review{ background: var(--rust); height:100%; transition: width .35s ease; }
+  .rail-count{ font-family: var(--font-mono); font-size:12px; color: var(--muted); white-space:nowrap; }
+
+  .stage{ width:100%; perspective: 1600px; margin-bottom: 20px; }
+  .card{
+    position:relative; width:100%; height:300px; transform-style: preserve-3d;
+    transition: transform 0.5s cubic-bezier(.4,.2,.2,1); cursor:pointer;
+  }
+  .card.flipped{ transform: rotateY(180deg); }
+  .face{
+    position:absolute; inset:0; backface-visibility:hidden; border-radius:14px;
+    background: var(--paper); color: var(--ink);
+    box-shadow: 0 18px 40px rgba(0,0,0,0.35), 0 2px 0 rgba(0,0,0,0.15);
+    display:flex; flex-direction:column; overflow:hidden;
+  }
+  .punch{ position:absolute; top:16px; left:16px; width:14px; height:14px; border-radius:50%; background: var(--ink); opacity:0.12; }
+  .tag{ position:absolute; top:16px; right:18px; font-family: var(--font-mono); font-size:11px; color: var(--muted); letter-spacing:1px; }
+  .face-front{
+    align-items:center; justify-content:center; text-align:center;
+    background-image: repeating-linear-gradient(to bottom, transparent, transparent 37px, var(--paper-line) 38px);
+  }
+  .word{ font-family: var(--font-display); font-size: 38px; font-weight:700; padding: 0 28px; line-height:1.2; }
+  .hint{ margin-top:14px; font-family: var(--font-mono); font-size:12px; color: var(--muted); letter-spacing:0.5px; }
+  .face-back{ transform: rotateY(180deg); padding: 28px 30px; justify-content:center; }
+  .back-word{ font-family: var(--font-display); font-size:21px; font-weight:700; margin-bottom:4px; display:inline-block; }
+  .back-ipa{ font-family: var(--font-mono); font-size:14px; color: var(--sage-dark); margin-bottom:14px; }
+  .back-row{ margin-bottom:10px; }
+  .back-label{ font-family: var(--font-mono); font-size:10px; text-transform:uppercase; letter-spacing:1.5px; color:var(--muted); margin-bottom:3px; }
+  .back-es{ font-size:17px; font-weight:600; }
+  .back-ex{ font-size:14px; font-style:italic; color:#3a4a5c; line-height:1.4; }
+
+  .controls{ width:100%; display:flex; gap:10px; margin-bottom:14px; }
+  button{ font-family: var(--font-body); font-weight:600; font-size:14px; border:none; border-radius:10px; padding:14px 10px; cursor:pointer; transition: transform .12s ease, opacity .12s ease; }
+  .speak-btn{
+    background:none; border:none; cursor:pointer; padding:2px 6px; border-radius:8px;
+    color: var(--sage-dark); font-size:16px; vertical-align:middle; line-height:1;
+    transition: transform .12s ease, background .12s ease;
+  }
+  .speak-btn:hover{ background: rgba(95,139,122,0.15); }
+  .speak-btn:active{ transform: scale(0.9); }
+  .speak-btn-front{
+    background: rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15);
+    color: var(--paper); font-size:18px; padding:8px 12px; border-radius:50%;
+    margin-top:10px;
+  }
+  #btnSpeakExample{ font-size:12px; font-weight:600; padding:6px 10px; background: rgba(95,139,122,0.15); border:1px solid rgba(95,139,122,0.3); border-radius:8px; }
+  button:active{ transform: scale(0.97); }
+  .btn-review{ flex:1; background: rgba(181,71,63,0.18); color:#f0b3ae; border: 1px solid rgba(181,71,63,0.4); }
+  .btn-known{ flex:1; background: rgba(95,139,122,0.22); color:#a9d4c1; border: 1px solid rgba(95,139,122,0.45); }
+  .btn-review:hover{ background: rgba(181,71,63,0.28); }
+  .btn-known:hover{ background: rgba(95,139,122,0.32); }
+
+  .toolbar{ width:100%; display:flex; gap:10px; justify-content:center; }
+  .btn-ghost{ background:transparent; border:1px solid rgba(255,255,255,0.15); color: var(--muted); font-size:12px; padding:9px 14px; letter-spacing:0.3px; }
+  .btn-ghost:hover{ color: var(--paper); border-color: rgba(255,255,255,0.35); }
+  .btn-ghost.active{ color: var(--amber); border-color: var(--amber); }
+
+  .done{ max-width:520px; text-align:center; padding: 40px 20px; }
+  .done h2{ font-family: var(--font-display); font-size:24px; margin-bottom:8px; }
+  .done p{ color:var(--muted); font-size:14px; margin-bottom:20px;}
+
+  @media (max-width:480px){
+    .word{ font-size:30px; }
+    .card{ height:280px; }
+    .pack-grid{ grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-layer" id="bgLayerA"></div>
+<div class="bg-layer" id="bgLayerB"></div>
+<div class="bg-tint"></div>
+
+<div class="brand"><img src="logo.png" width="56" height="56" alt="Logo de WordFlow"><div><strong>WordFlow</strong><span>Tu inglés, palabra a palabra.</span></div><button id="settingsBtn" aria-label="Herramientas y ajustes">☰</button></div>
+<div id="notice" role="status" hidden></div><button id="updateBtn" hidden>Actualizar a la nueva versión</button>
+<div class="header">
+  <div class="eyebrow" id="screenEyebrow">2000 palabras · A2 → C1</div>
+  <h1 id="screenTitle">Elige tu paquete</h1>
+  <div class="subtitle" id="screenSubtitle">98 paquetes de 20 palabras cada uno</div>
+</div>
+
+<!-- PACK SELECTOR SCREEN -->
+<div id="packScreen">
+  <div class="overall-bar">
+    <div class="overall-fill-known" id="overallKnown" style="width:0%"></div>
+    <div class="overall-fill-review" id="overallReview" style="width:0%"></div>
+  </div>
+  <div class="overall-label" id="overallLabel">0 / 0 palabras aprendidas</div>
+
+  <div class="search-row">
+    <input type="text" id="searchBox" placeholder="Buscar palabra en cualquier paquete...">
+  </div>
+
+  <div class="pack-grid" id="packGrid"></div>
+</div>
+
+<!-- STUDY SCREEN -->
+<div id="studyScreen">
+  <button class="back-btn" id="btnBack">← Volver a los paquetes</button>
+
+  <div class="rail">
+    <span class="rail-count" id="railLeft">0 sabidas</span>
+    <div class="rail-track">
+      <div class="rail-fill-known" id="fillKnown" style="width:0%"></div>
+      <div class="rail-fill-review" id="fillReview" style="width:0%"></div>
+    </div>
+    <span class="rail-count" id="railRight">0 total</span>
+  </div>
+
+  <div id="mainArea">
+    <div class="stage">
+      <div class="card" id="card">
+        <div class="face face-front">
+          <div class="punch"></div>
+          <div class="tag" id="tagFront">1 / 20</div>
+          <div>
+            <div class="word" id="wordFront">—</div>
+            <button class="speak-btn speak-btn-front" id="btnSpeakFront" title="Escuchar pronunciación">🔊</button>
+            <div class="hint">toca para ver el significado</div>
+          </div>
+        </div>
+        <div class="face face-back">
+          <div class="punch"></div>
+          <div class="tag" id="tagBack">1 / 20</div>
+          <div class="back-word" id="backWord">—</div> <button class="speak-btn" id="btnSpeakBack" title="Escuchar pronunciación">🔊</button>
+          <div class="back-ipa" id="backIpa">—</div>
+          <div class="back-row">
+            <div class="back-label">Significado</div>
+            <div class="back-es" id="backEs">—</div>
+          </div>
+          <div class="back-row">
+            <div class="back-label">Ejemplo</div>
+            <div class="back-ex" id="backEx">—</div>
+            <button class="speak-btn" id="btnSpeakExample" title="Escuchar la oración" style="margin-top:4px;">🔊 Escuchar oración</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn-review" id="btnReview">↺ Repasar de nuevo</button>
+      <button class="btn-known" id="btnKnown">✓ Ya la sé</button>
+    </div>
+
+    <div class="toolbar">
+      <button class="btn-ghost" id="btnShuffle">Barajar</button>
+      <button class="btn-ghost" id="btnFilter">Solo pendientes</button>
+      <button class="btn-ghost" id="btnReset">Reiniciar paquete</button>
+    </div>
+  </div>
+
+  <div id="doneArea" class="done" style="display:none;">
+    <h2>¡Paquete completo! 🎉</h2>
+    <p id="doneStats">—</p>
+    <div style="display:flex; gap:10px; justify-content:center;">
+      <button class="btn-ghost" id="btnRestartDeck">Repasar de nuevo</button>
+      <button class="btn-ghost active" id="btnNextPack">Siguiente paquete →</button>
+    </div>
+  </div>
+</div>
+
+<script src="cards.js"></script>
+<script>
+
+
+const BG_IMAGES = [
+  'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=1600&q=70', // cordillera al atardecer
+  'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?auto=format&fit=crop&w=1600&q=70', // skyline Nueva York
+  'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1600&q=70', // montañas al amanecer
+  'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1600&q=70', // lago de montaña
+  'https://images.unsplash.com/photo-1444723121867-7a241cacace9?auto=format&fit=crop&w=1600&q=70', // atardecer naranja
+  'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1600&q=70', // bosque con niebla
+  'https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=1600&q=70', // bosque brumoso
+  'https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1600&q=70'  // montañas nevadas
+];
+let bgIndex = -1;
+let bgActiveIsA = true;
+
+function pickNextBgIndex(){
+  if(BG_IMAGES.length === 1) return 0;
+  let next;
+  do { next = Math.floor(Math.random() * BG_IMAGES.length); } while(next === bgIndex);
+  return next;
+}
+
+function rotateBackground(){
+  bgIndex = pickNextBgIndex();
+  const url = BG_IMAGES[bgIndex];
+  const showLayer = bgActiveIsA ? $('bgLayerB') : $('bgLayerA');
+  const hideLayer = bgActiveIsA ? $('bgLayerA') : $('bgLayerB');
+  showLayer.style.backgroundImage = `url('${url}')`;
+  showLayer.classList.add('active');
+  hideLayer.classList.remove('active');
+  bgActiveIsA = !bgActiveIsA;
+}
+
+function initBackgrounds(){
+  rotateBackground();
+  setInterval(rotateBackground, 25000); // cambia de fondo cada 25 segundos
+}
+
+// ---------- PRONUNCIACIÓN (texto a voz) ----------
+let englishVoice = null;
+function pickEnglishVoice(){
+  if(!('speechSynthesis' in window)) return;
+  const voices = speechSynthesis.getVoices();
+  englishVoice =
+    voices.find(v => /en[-_]US/i.test(v.lang) && /female|Samantha|Google US English/i.test(v.name)) ||
+    voices.find(v => /en[-_]US/i.test(v.lang)) ||
+    voices.find(v => /^en/i.test(v.lang)) ||
+    null;
+}
+if('speechSynthesis' in window){
+  pickEnglishVoice();
+  speechSynthesis.onvoiceschanged = pickEnglishVoice;
+}
+function speakWord(text){
+  if(!('speechSynthesis' in window) || !text) return;
+  speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = 'en-US';
+  utter.rate = 0.9;
+  if(englishVoice) utter.voice = englishVoice;
+  speechSynthesis.speak(utter);
+}
+
+const STORAGE_KEY = 'flashcards_all_progress_v1';
+let progress = {}; // { word: 'known' | 'review' }
+let currentPackIndex = null;
+let deck = [];
+let idx = 0;
+let flipped = false;
+let filterPendingOnly = false;
+
+const $ = id => document.getElementById(id);
+
+function loadProgress(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){ progress = JSON.parse(raw); }
+  }catch(e){ progress = {}; }
+}
+function saveProgress(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(progress)); }catch(e){ alert('No se pudo guardar el progreso. Exporta un respaldo antes de cerrar.'); }
+}
+
+function allWordsFlat(){
+  return PACKS.flat();
+}
+
+function packStats(packIndex){
+  const pack = PACKS[packIndex];
+  let known = 0, review = 0;
+  pack.forEach(c => {
+    if(progress[c.w] === 'known') known++;
+    else if(progress[c.w] === 'review') review++;
+  });
+  return { known, review, total: pack.length };
+}
+
+function renderOverall(){
+  const total = allWordsFlat().length;
+  let known = 0, review = 0;
+  allWordsFlat().forEach(c => { if(progress[c.w]==='known') known++; else if(progress[c.w]==='review') review++; });
+  $('overallKnown').style.width = (known/total*100) + '%';
+  $('overallReview').style.width = (review/total*100) + '%';
+  $('overallLabel').textContent = known + ' / ' + total + ' palabras aprendidas';
+}
+
+function renderPackGrid(filterText){
+  const grid = $('packGrid');
+  grid.innerHTML = '';
+  const q = (filterText || '').trim().toLowerCase();
+
+  PACKS.forEach((pack, i) => {
+    if(q){
+      const match = pack.some(c => c.w.toLowerCase().includes(q));
+      if(!match) return;
+    }
+    const stats = packStats(i);
+    const tile = document.createElement('button');
+    tile.className = 'pack-tile' + (stats.known === stats.total ? ' complete' : '');
+    const start = PACKS.slice(0,i).reduce((n,p)=>n+p.length,0)+1, end = start+pack.length-1;
+    tile.innerHTML = `
+      <div class="num">${i+1}</div>
+      <div class="range">${start}-${end}</div>
+      <div class="bar">
+        <div class="bar-known" style="width:${stats.known/stats.total*100}%"></div>
+        <div class="bar-review" style="width:${stats.review/stats.total*100}%"></div>
+      </div>
+    `;
+    tile.addEventListener('click', () => openPack(i));
+    grid.appendChild(tile);
+  });
+}
+
+function openPack(packIndex){
+  currentPackIndex = packIndex;
+  filterPendingOnly = false;
+  $('btnFilter').classList.remove('active');
+  $('btnFilter').textContent = 'Solo pendientes';
+  $('packScreen').style.display = 'none';
+  $('studyScreen').style.display = 'block';
+  $('screenEyebrow').textContent = 'Paquete ' + (packIndex+1) + ' de ' + PACKS.length;
+  $('screenTitle').textContent = 'Estudiando';
+  $('screenSubtitle').textContent = PACKS[packIndex].length + ' palabras en este paquete';
+  buildDeck();
+  updatePackProgressUI();
+  renderCard();
+}
+
+function backToPacks(){
+  $('studyScreen').style.display = 'none';
+  $('packScreen').style.display = 'block';
+  $('screenEyebrow').textContent = allWordsFlat().length + ' tarjetas · A2 → C1';
+  $('screenTitle').textContent = 'Elige tu paquete';
+  $('screenSubtitle').textContent = PACKS.length + ' paquetes para aprender a tu ritmo';
+  renderOverall();
+  renderPackGrid($('searchBox').value);
+}
+
+function buildDeck(){
+  const pack = PACKS[currentPackIndex];
+  deck = filterPendingOnly ? pack.filter(c => progress[c.w] !== 'known') : pack.slice();
+  idx = 0;
+}
+
+function shuffleArr(arr){
+  for(let i = arr.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i+1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+}
+
+function updatePackProgressUI(){
+  const stats = packStats(currentPackIndex);
+  $('fillKnown').style.width = (stats.known/stats.total*100) + '%';
+  $('fillReview').style.width = (stats.review/stats.total*100) + '%';
+  $('railLeft').textContent = stats.known + ' sabidas';
+  $('railRight').textContent = stats.total + ' total';
+}
+
+function renderCard(){
+  if(deck.length === 0){
+    $('mainArea').style.display = 'none';
+    $('doneArea').style.display = 'block';
+    const stats = packStats(currentPackIndex);
+    $('doneStats').textContent = filterPendingOnly
+      ? '¡No quedan pendientes en este paquete! ' + stats.known + '/' + stats.total + ' aprendidas.'
+      : 'Repasaste las ' + stats.total + ' tarjetas de este paquete.';
+    $('btnNextPack').style.display = (currentPackIndex < PACKS.length - 1) ? 'inline-block' : 'none';
+    return;
+  }
+  $('mainArea').style.display = 'block';
+  $('doneArea').style.display = 'none';
+
+  const c = deck[idx];
+  flipped = false;
+  $('card').classList.remove('flipped');
+  $('wordFront').textContent = c.w;
+  $('backWord').textContent = c.w;
+  $('backIpa').textContent = c.ipa;
+  $('backEs').textContent = c.es;
+  $('backEx').textContent = c.ex;
+  $('tagFront').textContent = (idx+1) + ' / ' + deck.length;
+  $('tagBack').textContent = (idx+1) + ' / ' + deck.length;
+}
+
+function nextCard(){
+  idx++;
+  if(idx >= deck.length){ deck = []; renderCard(); }
+  else { renderCard(); }
+}
+
+function mark(status){
+  const c = deck[idx];
+  if(!c) return;
+  progress[c.w] = status;
+  saveProgress();
+  updatePackProgressUI();
+  nextCard();
+}
+
+$('card').addEventListener('click', () => {
+  flipped = !flipped;
+  $('card').classList.toggle('flipped', flipped);
+});
+$('btnKnown').addEventListener('click', (e) => { e.stopPropagation(); mark('known'); });
+$('btnReview').addEventListener('click', (e) => { e.stopPropagation(); mark('review'); });
+
+$('btnSpeakFront').addEventListener('click', (e) => {
+  e.stopPropagation();
+  if(deck[idx]) speakWord(deck[idx].w);
+});
+$('btnSpeakBack').addEventListener('click', (e) => {
+  e.stopPropagation();
+  if(deck[idx]) speakWord(deck[idx].w);
+});
+$('btnSpeakExample').addEventListener('click', (e) => {
+  e.stopPropagation();
+  if(deck[idx]) speakWord(deck[idx].ex);
+});
+
+$('btnShuffle').addEventListener('click', () => {
+  if(deck.length === 0){ deck = filterPendingOnly ? PACKS[currentPackIndex].filter(c => progress[c.w] !== 'known') : PACKS[currentPackIndex].slice(); }
+  shuffleArr(deck);
+  idx = 0;
+  renderCard();
+});
+
+$('btnFilter').addEventListener('click', () => {
+  filterPendingOnly = !filterPendingOnly;
+  $('btnFilter').classList.toggle('active', filterPendingOnly);
+  $('btnFilter').textContent = filterPendingOnly ? 'Mostrando pendientes' : 'Solo pendientes';
+  buildDeck();
+  renderCard();
+});
+
+$('btnReset').addEventListener('click', () => {
+  if(confirm('¿Reiniciar el progreso de este paquete?')){
+    PACKS[currentPackIndex].forEach(c => { delete progress[c.w]; });
+    saveProgress();
+    updatePackProgressUI();
+    buildDeck();
+    renderCard();
+  }
+});
+
+$('btnRestartDeck').addEventListener('click', () => { buildDeck(); renderCard(); });
+$('btnNextPack').addEventListener('click', () => {
+  if(currentPackIndex < PACKS.length - 1){ openPack(currentPackIndex + 1); }
+});
+$('btnBack').addEventListener('click', backToPacks);
+
+$('searchBox').addEventListener('input', (e) => {
+  renderPackGrid(e.target.value);
+});
+
+(function init(){
+  loadProgress();
+  renderOverall();
+  renderPackGrid('');
+  backToPacks();
+})();
+</script>
+<dialog id="settings"><div class="dialog-head"><h2>Tu WordFlow</h2><button id="closeSettings" aria-label="Cerrar">✕</button></div>
+<p>Agrega vocabulario y lleva una copia de tu aprendizaje.</p>
+<form id="addForm"><h3>Agregar una palabra</h3><label>Palabra o expresión en inglés<input name="w" required maxlength="160"></label><label>Significado en español<input name="es" required maxlength="400"></label><label>Pronunciación IPA · opcional<input name="ipa" maxlength="160"></label><label>Ejemplo en inglés · opcional<textarea name="ex" maxlength="900"></textarea></label><button class="primary" type="submit">Guardar palabra</button></form>
+<h3>Copia de seguridad</h3><p>Incluye palabras personales y progreso. Guárdala antes de cambiar de teléfono o borrar datos del navegador. Los datos no se sincronizan entre dispositivos.</p><div class="actions"><button id="exportBtn">Exportar respaldo</button><button id="importBtn">Importar respaldo</button></div><input type="file" id="backupFile" accept="application/json,.json" hidden>
+<h3>Instalar WordFlow</h3><button id="installBtn">Instalar / Ver instrucciones</button><p>Android: comprueba que ves tus tarjetas y el logo azul de WordFlow. Abre este enlace en Chrome y usa el menú ⋮ → Instalar aplicación o Agregar a pantalla principal.<br>iPhone: abre en Safari → Compartir → Agregar a pantalla de inicio.</p>
+<h3>Actualizaciones</h3><p id="appVersion"></p><button id="checkUpdate">Buscar actualizaciones</button><button id="menuUpdate" hidden>Actualizar WordFlow</button><p id="updateStatus" role="status">Las actualizaciones se comprueban al abrir la app.</p><a href="actualizar.html">Recuperar actualización</a><p><a href="instalar.html">Comprobar logo e instalación</a></p><p id="offlineStatus">Preparando acceso sin conexión…</p><p>Las tarjetas se pueden guardar sin conexión tras la primera carga. La voz depende de las voces instaladas en tu teléfono. Tus datos se guardan localmente en este navegador.</p><p class="version">WordFlow 1.1.0</p></dialog>
+<script src="wordflow.js"></script>
+</body>
+</html>
