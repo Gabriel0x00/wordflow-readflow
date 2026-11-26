@@ -1,4 +1,4 @@
-const CACHE='wordflow-shell-v1.1.0';
+const CACHE='wordflow-shell-v1.1.1';
 const FILES=['./','./index.html','./cards.js','./wordflow.js','./wordflow.css','./manifest.webmanifest','./logo.png','./icon-180.png','./icon-192.png','./icon-512.png','./wordflow-icon-v2-180.png','./wordflow-icon-v2-192.png','./wordflow-icon-v2-48.png','./wordflow-icon-v2-512.png','./wordflow-maskable-v2-192.png','./wordflow-maskable-v2-512.png'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(async cache=>{for(const path of FILES){const req=new Request(new URL(path,self.registration.scope),{cache:'reload'});const res=await fetch(req);if(!res.ok)throw Error('Invalid app asset');if(path.endsWith('.js')&&!(res.headers.get('content-type')||'').includes('javascript'))throw Error('Session response instead of app asset');await cache.put(req,res);}})));
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('wordflow-shell-')&&k!==CACHE).map(k=>caches.delete(k))))));
