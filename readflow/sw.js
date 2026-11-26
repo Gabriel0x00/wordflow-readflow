@@ -1,7 +1,7 @@
-const CACHE='readflow-shell-v2.1.0';
+const CACHE='readflow-shell-v2.1.1';
 const FILES=["./", "./index.html", "./reader.js", "./readflow.js", "./readflow.css", "./manifest.webmanifest", "./logo.png", "./favicon.ico", "./readflow-icon-v2-180.png", "./readflow-icon-v2-192.png", "./readflow-icon-v2-48.png", "./readflow-icon-v2-512.png", "./readflow-maskable-v2-192.png", "./readflow-maskable-v2-512.png"];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(async cache=>{for(const path of FILES){const req=new Request(new URL(path,self.registration.scope),{cache:'reload'});const res=await fetch(req);if(!res.ok)throw Error('Invalid app asset');if(path.endsWith('.js')&&!(res.headers.get('content-type')||'').includes('javascript'))throw Error('Session response instead of app asset');await cache.put(req,res);}})));
-self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('wordflow-shell-')&&k!==CACHE).map(k=>caches.delete(k))))));
+self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('readflow-shell-')&&k!==CACHE).map(k=>caches.delete(k))))));
 self.addEventListener('message',event=>{if(event.data?.type==='SKIP_WAITING')self.skipWaiting();});
 self.addEventListener('fetch',event=>{
  const u=new URL(event.request.url);if(event.request.method!=='GET'||u.origin!==self.location.origin)return;
