@@ -10,21 +10,63 @@ function rebuild(){PACKS.splice(0,PACKS.length,...BASE_PACKS.map(p=>p.slice()));
 try{customCards=cleanCards(JSON.parse(localStorage.getItem(CUSTOM_KEY)||'[]'));rebuild();}catch(e){message('No se pudieron cargar las palabras personales. No se ha borrado su copia guardada.');}
 $('settingsBtn').onclick=()=>$('settings').showModal();$('closeSettings').onclick=()=>$('settings').close();
 $('addForm').onsubmit=e=>{e.preventDefault();try{const card=cleanCards([Object.fromEntries(new FormData(e.target))])[0];if(allWordsFlat().some(c=>c.w.toLowerCase()===card.w.toLowerCase()))throw Error('Esa palabra ya está en tu colección. Búscala en los paquetes.');const next=[...customCards,card];localStorage.setItem(CUSTOM_KEY,JSON.stringify(next));customCards=next;rebuild();e.target.reset();$('settings').close();message('Palabra guardada. La encontrarás en los últimos paquetes.');}catch(err){alert(err.message);}};
-$('exportBtn').onclick=()=>{const blob=new Blob([JSON.stringify({app:'WordFlow',schemaVersion:1,exportedAt:new Date().toISOString(),customCards,progress},null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='WordFlow-respaldo-'+new Date().toISOString().slice(0,10)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),2000);};
+$('exportBtn').onclick=async()=>{
+ const button=$('exportBtn');button.disabled=true;
+ try{
+  const backup={app:'WordFlow',schemaVersion:1,exportedAt:new Date().toISOString(),customCards,progress};
+  try{backup.streak=await window.WordFlowStreak.exportBackup();}
+  catch{message('Se guardó el respaldo de palabras y progreso. El historial de racha no estaba disponible.');}
+  const blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const link=document.createElement('a');
+  link.href=url;link.download='WordFlow-respaldo-'+backup.exportedAt.slice(0,10)+'.json';link.click();
+  setTimeout(()=>URL.revokeObjectURL(url),2000);
+ }finally{button.disabled=false;}
+};
 $('importBtn').onclick=()=>$('backupFile').click();
-$('backupFile').onchange=async e=>{try{const file=e.target.files[0];if(!file)return;if(file.size>10*1024*1024)throw Error('El respaldo supera 10 MB.');const data=JSON.parse(await file.text());if(data.app!=='WordFlow'||data.schemaVersion!==1)throw Error('Selecciona un respaldo de WordFlow versión 1.');const incoming=cleanCards(data.customCards);if(!data.progress||Array.isArray(data.progress)||typeof data.progress!=='object')throw Error('Progreso no válido.');const entries=Object.entries(data.progress);if(entries.some(([k,v])=>k.length>160||!['known','review'].includes(v)))throw Error('El progreso contiene valores no válidos.');if(!confirm('¿Combinar este respaldo con tus datos? En palabras repetidas se conserva tu tarjeta actual; las marcas del respaldo reemplazan las correspondientes.'))return;const seen=new Set(allWordsFlat().map(c=>c.w.toLowerCase()));const next=[...customCards];for(const c of incoming){if(!seen.has(c.w.toLowerCase())){next.push(c);seen.add(c.w.toLowerCase());}}const merged=Object.assign(Object.create(null),progress,Object.fromEntries(entries));const oldCustom=localStorage.getItem(CUSTOM_KEY);try{localStorage.setItem(CUSTOM_KEY,JSON.stringify(next));localStorage.setItem(STORAGE_KEY,JSON.stringify(merged));}catch(err){if(oldCustom===null)localStorage.removeItem(CUSTOM_KEY);else localStorage.setItem(CUSTOM_KEY,oldCustom);throw Error('No hay espacio para importar. Tus datos anteriores se mantienen.');}customCards=next;progress=merged;rebuild();$('settings').close();message('Respaldo importado y combinado correctamente.');}catch(err){alert('No se importó el archivo: '+err.message);}finally{e.target.value='';}};
+$('backupFile').onchange=async e=>{
+ try{
+  const file=e.target.files[0];if(!file)return;
+  if(file.size>10*1024*1024)throw Error('El respaldo supera 10 MB.');
+  const data=JSON.parse(await file.text());
+  if(data.app!=='WordFlow'||data.schemaVersion!==1)throw Error('Selecciona un respaldo de WordFlow versión 1.');
+  const incoming=cleanCards(data.customCards);
+  const streak=window.WordFlowStreak.validateBackup(data.streak);
+  if(!data.progress||Array.isArray(data.progress)||typeof data.progress!=='object')throw Error('Progreso no válido.');
+  const entries=Object.entries(data.progress);
+  if(entries.some(([k,v])=>k.length>160||!['known','review'].includes(v)))throw Error('El progreso contiene valores no válidos.');
+  if(!confirm('¿Combinar el respaldo? Las tarjetas repetidas se conservan y el historial de racha se combina por fecha.'))return;
+  const seen=new Set(allWordsFlat().map(c=>c.w.toLowerCase()));
+  const next=[...customCards];
+  for(const c of incoming){if(!seen.has(c.w.toLowerCase())){next.push(c);seen.add(c.w.toLowerCase());}}
+  const merged=Object.assign(Object.create(null),progress,Object.fromEntries(entries));
+  const originals=[CUSTOM_KEY,STORAGE_KEY].map(key=>[key,localStorage.getItem(key)]);
+  try{
+   localStorage.setItem(CUSTOM_KEY,JSON.stringify(next));
+   localStorage.setItem(STORAGE_KEY,JSON.stringify(merged));
+   await window.WordFlowStreak.importBackup(streak);
+  }catch(err){
+   for(const [key,value] of originals){
+    if(value===null)localStorage.removeItem(key);
+    else localStorage.setItem(key,value);
+   }
+   throw err;
+  }
+  customCards=next;progress=merged;rebuild();$('settings').close();
+  message('Respaldo importado y combinado correctamente.');
+ }catch(err){alert('No se importó el archivo. '+err.message);}
+ finally{e.target.value='';}
+};
 let installPrompt=null;window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installPrompt=e;});
 $('installBtn').onclick=async()=>{if(installPrompt){await installPrompt.prompt();installPrompt=null;}else alert('Android: abre WordFlow en Chrome, menú ⋮ → Instalar aplicación / Agregar a pantalla principal.\n\niPhone: Safari → Compartir → Agregar a pantalla de inicio.');};
-const APP_VERSION='1.1.2';
+const APP_VERSION='1.2.0';
 let registration,availableVersion=null;
 function showUpdate(){
  if(registration?.waiting||availableVersion){$('updateBtn').hidden=false;$('updateBtn').textContent='Actualizar WordFlow'+(availableVersion?' · '+availableVersion:'');$('menuUpdate').hidden=false;}
 }
 async function refreshApplication(){
  saveProgress();
- // Refresh only this app's shell. Keep localStorage and user progress untouched.
- if('serviceWorker'in navigator){const current=await navigator.serviceWorker.getRegistration('./');if(current)await current.unregister();}
- if('caches'in window){const keys=await caches.keys();await Promise.all(keys.filter(k=>k.startsWith('wordflow-shell-')).map(k=>caches.delete(k)));}
+ await window.activateWordFlowUpdate();
  location.replace('./?updated='+Date.now());
 }
 async function applyUpdate(){

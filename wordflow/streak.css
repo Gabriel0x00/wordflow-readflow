@@ -1,0 +1,250 @@
+.streak-panel {
+  --streak-gold: #ffc27e;
+  display: grid;
+  gap: 13px;
+  margin: 0 0 22px;
+  padding: clamp(14px, 4vw, 21px);
+  border: 1px solid #665390;
+  border-radius: 20px;
+  background: linear-gradient(145deg, #35234e, #1c2949 80%);
+  color: #faf4ff;
+}
+
+.streak-intro, .streak-totals, .streak-meter, .streak-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.streak-panel h2 {
+  margin: 0;
+  color: #fff8fc;
+  font-size: clamp(18px, 4.8vw, 23px);
+  line-height: 1.16;
+}
+
+.streak-intro p {
+  margin: 5px 0 0;
+  color: #ddd3ef;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.streak-emblem, .study-streak img, .milestone-art img {
+  flex: none;
+  border-radius: 50%;
+}
+
+.streak-panel[data-complete="false"] .streak-emblem {
+  filter: saturate(.73);
+}
+
+.streak-panel[data-complete="true"] .streak-emblem {
+  box-shadow: 0 0 18px #ffa94286;
+}
+
+.streak-totals {
+  justify-content: space-between;
+  flex-wrap: wrap;
+  color: #dfd5f4;
+  font-size: 13px;
+}
+
+.streak-totals > strong {
+  color: var(--streak-gold);
+  font-size: 24px;
+  line-height: 1.1;
+}
+
+.streak-week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 3px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.streak-week li {
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  color: #d0c6e5;
+  font-size: 12px;
+}
+
+.streak-week b {
+  display: grid;
+  place-items: center;
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  background: #424260;
+}
+
+.streak-week [data-day-state="today"] b {
+  background: #6a5496;
+  color: #fff;
+}
+
+.streak-week [data-day-state="complete"] b {
+  background: var(--streak-gold);
+  color: #352452;
+}
+
+.streak-meter {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 5px 10px;
+  color: #ece5fb;
+  font-size: 13px;
+}
+
+.streak-meter > progress {
+  grid-column: 1 / -1;
+  width: 100%;
+  height: 11px;
+  accent-color: var(--streak-gold);
+}
+
+.streak-actions {
+  flex-wrap: wrap;
+}
+
+.streak-actions button, .reminder-actions button, #reminderAdd, .reminder-hour button, #closeMilestone {
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid #6a5897;
+  border-radius: 10px;
+  background: #333f63;
+  color: #fff;
+  font: 650 13px/1.25 system-ui, sans-serif;
+}
+
+.streak-actions #streakContinue, #closeMilestone {
+  background: #e0d2ff;
+  color: #24143f;
+}
+
+.study-streak {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: fit-content;
+  max-width: 100%;
+  gap: 8px;
+  min-height: 37px;
+  margin: 0 0 12px;
+  padding: 4px 11px 4px 5px;
+  border-radius: 30px;
+  background: #211932;
+  color: #f9e2c4;
+  font: 600 13px/1.3 system-ui, sans-serif;
+}
+
+.streak-daily-sparks {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  border-radius: inherit;
+}
+
+.streak-earned .streak-daily-sparks {
+  animation: streak-spark .8s cubic-bezier(.17, .7, .25, 1);
+}
+
+@keyframes streak-spark {
+  0% { opacity: 0; box-shadow: 0 0 0 2px #ffc27e; }
+  30% { opacity: .92; box-shadow: 0 0 15px 3px #ffc27e; }
+  100% { opacity: 0; box-shadow: 0 0 24px 11px #ffc27e; }
+}
+
+#reminderHours, .reminder-actions {
+  display: grid;
+  gap: 8px;
+}
+
+.reminder-hour {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#streakReminderDialog .reminder-hour input {
+  color-scheme: dark;
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+}
+
+.reminder-actions, #reminderAdd {
+  margin-top: 12px;
+}
+
+#streakReminderDialog #reminderStatus {
+  margin-bottom: 0;
+}
+
+#streakCelebration {
+  background: linear-gradient(153deg, #392655, #1f2348);
+  text-align: center;
+  max-width: 360px;
+}
+
+#streakCelebration[data-gold="true"] {
+  background: linear-gradient(153deg, #533a37, #312340);
+  border-color: #f3bd71;
+}
+
+.milestone-art {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  padding-block: 9px;
+  isolation: isolate;
+}
+
+.milestone-art img {
+  animation: milestone-rise .63s ease-out both;
+}
+
+.milestone-sparks {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(circle at 13% 45%, #fca94d 0 3px, transparent 4px),
+    radial-gradient(circle at 29% 12%, #e5aeff 0 4px, transparent 5px),
+    radial-gradient(circle at 84% 35%, #feca79 0 4px, transparent 5px),
+    radial-gradient(circle at 72% 78%, #e6b1ff 0 3px, transparent 4px),
+    radial-gradient(circle at 18% 82%, #eca961 0 3px, transparent 4px),
+    radial-gradient(ellipse at center, #ce8d5a9e 0%, transparent 64%);
+  animation: milestone-burst 1.55s ease-out both;
+}
+
+@keyframes milestone-rise {
+  from { transform: scale(.64); opacity: .65; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes milestone-burst {
+  0% { transform: scale(.42); opacity: .24; }
+  37% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(1.12); opacity: .5; }
+}
+
+.streak-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .streak-earned .streak-daily-sparks, .milestone-art img, .milestone-sparks {
+    animation: none;
+  }
+}
